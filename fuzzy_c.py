@@ -54,10 +54,7 @@ def normalize():
 
 
 def import_data(file):
-    """
-     This function imports the data into a list form a file name passed as an argument.
-     The file should only the data seperated by a space.(or change the delimiter as required in split)
-    """
+
     data = []
     f = open(str(file), 'r')
     for line in f:
@@ -90,17 +87,13 @@ def imp(file):
     return data, cluster_location
 
 def print_matrix(list):
-    """
-    Prints the matrix in a more reqdable way
-    """
+
     for i in range(0, len(list)):
         print(list[i])
 
 
 def end_conditon(U, U_old):
-    """
-    This is the end conditions, it happens when the U matrix stops chaning too much with successive iterations.
-    """
+
     global Epsilon
     for i in range(0, len(U)):
         for j in range(0, len(U[0])):
@@ -126,9 +119,7 @@ def initialise_U(data, cluster_number):
 
 
 def distance(point, center):
-    """
-    This function calculates the distance between 2 points (taken as a list). We are refering to Eucledian Distance.
-    """
+
 
     if len(point) != len(center):
         return -1
@@ -148,17 +139,14 @@ def normalise_U(U):
 
 
 def fuzzy(data, cluster_number, m):
-    """
-    This is the main function, it would calculate the required center, and return the final normalised membership matrix U.
-    It's paramaters are the : cluster number and the fuzzifier "m".
-    """
-    ## initialise the U matrix:
+
+
     U = initialise_U(data, cluster_number)
-    # initilise the loop
+
     while (True):
-        # create a copy of it, to check the end conditions
+
         U_old = copy.deepcopy(U)
-        # cluster center vector
+
         C = []
         for j in range(0, cluster_number):
             current_cluster_center = []
@@ -172,7 +160,7 @@ def fuzzy(data, cluster_number, m):
             C.append(current_cluster_center)
 
 
-        # creating a distance vector, useful in calculating the U matrix.
+
 
         distance_matrix = []
         for i in range(0, len(data)):
@@ -182,7 +170,7 @@ def fuzzy(data, cluster_number, m):
             distance_matrix.append(current)
 
 
-        # update U vector
+
         for j in range(0, cluster_number):
             for i in range(0, len(data)):
                 dummy = 0.0
@@ -251,10 +239,6 @@ if __name__ == '__main__':
             c2 = pl.scatter(wyk[i, 0], wyk[i, 1], c='g', marker='o')
         elif final_location[i] == 2:
             c3 = pl.scatter(wyk[i, 0], wyk[i, 1], c='b', marker='*')
-        #elif final_location[i]== 3:
-         #   c4 = pl.scatter(wyk[i,0],wyk[i,1],c='m',marker='*')
-        #elif final_location[i]== 4:
-         #   c5 = pl.scatter(wyk[i,0],wyk[i,1],c='y',marker='*')
     pl.legend([c1, c2, c3] ,['Cluster 1', 'Cluster 2', 'Cluster 3'])
     pl.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5)
     pl.title("Efekt grupowania algorytmu C-Means")

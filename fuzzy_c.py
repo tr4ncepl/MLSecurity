@@ -1,4 +1,4 @@
-
+import converting
 import copy
 import math
 import random
@@ -25,25 +25,26 @@ Epsilon = 0.00000001
 
 
 def normalize():
-    seeds = pd.read_csv("dane.csv")
-    randomize = seeds.sample(frac=1).reset_index(drop=True)
-    x = pd.DataFrame(randomize, columns=['atr1', 'atr2', 'atr3', 'atr4', 'atr5', 'atr6', 'atr7'])
-    y = pd.DataFrame(randomize, columns=['class'])
+    seeds = pd.read_csv("dane.txt")
+    x = pd.DataFrame(seeds, columns=['atr1', 'atr2', 'atr3', 'atr4', 'atr5', 'atr6', 'atr7', 'atr8', 'atr9', 'atr10',
+                                    'atr11', 'atr12', 'atr13', 'atr14''atr15', 'atr16', 'atr17', 'atr18', 'atr19',
+                                    'atr20', 'atr21','atr22', 'atr23', 'atr24', 'atr25', 'atr26', 'atr27', 'atr28','atr29',
+                                    'atr30', 'atr31', 'atr32', 'atr33', 'atr34', 'atr35''atr36', 'atr37', 'atr38', 'atr39', 'atr40', 'atr41', 'atr42'])
+    y = pd.DataFrame(seeds, columns=['class'])
     # print(x)
 
     pca = PCA(n_components=2).fit(x)
     pca_2d = pca.transform(x)
     final = pd.DataFrame(pca_2d)
-    export_csv = final.to_csv("a.txt", sep=",", index=False, header=False)
+    export_csv = final.to_csv("normalized.txt", sep=",", index=False, header=False)
     final['klasa'] = y
     for i in range(0, pca_2d.shape[0]):
         if final.klasa[i] == 0:
             c1 = pl.scatter(pca_2d[i, 0], pca_2d[i, 1], c='r', marker='+')
         elif final.klasa[i] == 1:
             c2 = pl.scatter(pca_2d[i, 0], pca_2d[i, 1], c='g', marker='o')
-        elif final.klasa[i] == 2:
-            c3 = pl.scatter(pca_2d[i, 0], pca_2d[i, 1], c='b', marker='*')
-    pl.legend([c1, c2, c3], ['Canadian', 'Rosa ', 'Kama'])
+
+    pl.legend([c1, c2], ['Normal', 'Anomaly '])
     pl.title('Przypisanie danych do odpowiednich grup według klas')
     pl.savefig("final1.png")
     # pl.show()
@@ -206,16 +207,16 @@ def check(s1, s2):
 
 ## main
 if __name__ == '__main__':
-    # import the data
-    wyk,fin = normalize()
-    data = import_data('a.txt')
-    test, test2 = imp("ucz.txt")
 
-    start = time.time()
+    #converting.load()
+    #test, test2 = normalize()
+    data, test1 = imp("dane.txt")
+    final_location, centers, old = fuzzy(data, 2, 1.3)
+    a,b,c=check(test1, final_location)
+    print(a)
 
-
-    while(True):
-        final_location, centers, old = fuzzy(data, 2, 1.3)
+    """while(True):
+       
         acc, tp, p = check(final_location, fin.klasa)
         if acc>0.8:
             break
@@ -244,4 +245,6 @@ if __name__ == '__main__':
     # pl.show()
     pl.close()
     print("time elapsed=", time.time() - start)
+    
+    """
 

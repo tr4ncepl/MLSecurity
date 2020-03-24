@@ -21,15 +21,11 @@ global Epsilon
 Epsilon = 0.00000001
 
 
-# 0 - Canadian
-# 1 - Rosa
-# 2 - Kama
+
 
 
 def normalize():
-    dane = pd.read_csv("dane.csv")
-    print(dane)
-    seeds = pd.read_csv("uczace2.txt")
+    seeds = pd.read_csv("dane.csv")
     randomize = seeds.sample(frac=1).reset_index(drop=True)
     x = pd.DataFrame(randomize, columns=['atr1', 'atr2', 'atr3', 'atr4', 'atr5', 'atr6', 'atr7'])
     y = pd.DataFrame(randomize, columns=['class'])
@@ -219,7 +215,7 @@ if __name__ == '__main__':
 
 
     while(True):
-        final_location, centers, old = fuzzy(data, 3, 1.3)
+        final_location, centers, old = fuzzy(data, 2, 1.3)
         acc, tp, p = check(final_location, fin.klasa)
         if acc>0.8:
             break

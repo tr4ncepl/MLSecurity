@@ -27,6 +27,8 @@ Epsilon = 0.00000001
 
 
 def normalize():
+    dane = pd.read_csv("dane.csv")
+    print(dane)
     seeds = pd.read_csv("uczace2.txt")
     randomize = seeds.sample(frac=1).reset_index(drop=True)
     x = pd.DataFrame(randomize, columns=['atr1', 'atr2', 'atr3', 'atr4', 'atr5', 'atr6', 'atr7'])

@@ -79,8 +79,15 @@ def imp(file):
             cluster_location.append(0)
         elif current[j] == "1\n":
             cluster_location.append(1)
-        else:
+        elif current[j] == "2\n":
             cluster_location.append(2)
+        elif current[j] == "3\n":
+            cluster_location.append(3)
+        elif current[j] == "4\n":
+            cluster_location.append(4)
+        elif current[j] == "5\n":
+            cluster_location.append(5)
+            cluster_location.append(6)
         data.append(current_dummy)
     print("finished importing data")
     return data, cluster_location

@@ -4,10 +4,14 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectKBest, RFE, SelectFromModel
 from sklearn.feature_selection import chi2
 from sklearn.linear_model import LogisticRegression
-
-data = pd.read_csv("data.csv")
+from sklearn.ensemble import ExtraTreesClassifier
+import matplotlib.pyplot as plt
 
 pd.set_option('display.float_format', lambda x: '%.3f' % x)
+np.set_printoptions(suppress=True)
+data = pd.read_csv("data.csv")
+
+
 
 
 def univariateSeceltion(data):
@@ -59,4 +63,21 @@ def SFM(data):
     print(sel_model.get_support())
 
 
-SFM(data)
+def featureImportance(data):
+    X = data.iloc[:, 0:41]
+    y = data.iloc[:, -1]
+
+    model = ExtraTreesClassifier()
+    model.fit(X, y)
+
+    print(model.feature_importances_)
+
+    feat_importances = pd.Series(model.feature_importances_, index=X.columns)
+    feat_importances.nlargest(18).plot(kind='barh')
+    plt.show()
+
+test = univariateSeceltion(data)
+
+print(test)
+
+featureImportance(data)

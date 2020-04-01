@@ -32,6 +32,8 @@ a = 0
 b=0
 errors = abs(predictions - test_labels)
 
+print(predictions)
+
 for i in range(len(predictions)):
     if test_labels[i] == predictions[i]:
         a = a + 1

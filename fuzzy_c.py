@@ -21,15 +21,14 @@ global Epsilon
 Epsilon = 0.00000001
 
 
-
-
-
 def normalize():
     seeds = pd.read_csv("dane.txt")
     x = pd.DataFrame(seeds, columns=['atr1', 'atr2', 'atr3', 'atr4', 'atr5', 'atr6', 'atr7', 'atr8', 'atr9', 'atr10',
-                                    'atr11', 'atr12', 'atr13', 'atr14''atr15', 'atr16', 'atr17', 'atr18', 'atr19',
-                                    'atr20', 'atr21','atr22', 'atr23', 'atr24', 'atr25', 'atr26', 'atr27', 'atr28','atr29',
-                                    'atr30', 'atr31', 'atr32', 'atr33', 'atr34', 'atr35''atr36', 'atr37', 'atr38', 'atr39', 'atr40', 'atr41', 'atr42'])
+                                     'atr11', 'atr12', 'atr13', 'atr14''atr15', 'atr16', 'atr17', 'atr18', 'atr19',
+                                     'atr20', 'atr21', 'atr22', 'atr23', 'atr24', 'atr25', 'atr26', 'atr27', 'atr28',
+                                     'atr29',
+                                     'atr30', 'atr31', 'atr32', 'atr33', 'atr34', 'atr35''atr36', 'atr37', 'atr38',
+                                     'atr39', 'atr40', 'atr41', 'atr42'])
     y = pd.DataFrame(seeds, columns=['class'])
     # print(x)
 
@@ -53,7 +52,6 @@ def normalize():
 
 
 def import_data(file):
-
     data = []
     f = open(str(file), 'r')
     for line in f:
@@ -92,14 +90,13 @@ def imp(file):
     print("finished importing data")
     return data, cluster_location
 
-def print_matrix(list):
 
+def print_matrix(list):
     for i in range(0, len(list)):
         print(list[i])
 
 
 def end_conditon(U, U_old):
-
     global Epsilon
     for i in range(0, len(U)):
         for j in range(0, len(U[0])):
@@ -125,8 +122,6 @@ def initialise_U(data, cluster_number):
 
 
 def distance(point, center):
-
-
     if len(point) != len(center):
         return -1
     dummy = 0.0
@@ -145,8 +140,6 @@ def normalise_U(U):
 
 
 def fuzzy(data, cluster_number, m):
-
-
     U = initialise_U(data, cluster_number)
 
     while (True):
@@ -165,17 +158,12 @@ def fuzzy(data, cluster_number, m):
                 current_cluster_center.append(dummy_sum_num / dummy_sum_dum)
             C.append(current_cluster_center)
 
-
-
-
         distance_matrix = []
         for i in range(0, len(data)):
             current = []
             for j in range(0, cluster_number):
                 current.append(distance(data[i], C[j]))
             distance_matrix.append(current)
-
-
 
         for j in range(0, cluster_number):
             for i in range(0, len(data)):
@@ -193,34 +181,36 @@ def fuzzy(data, cluster_number, m):
     print("normalised U")
     return U, C, old_U
 
+
 def check(s1, s2):
     n = len(s1)
+    n2 = len(s2)
+    if n == n2:
+        print("Y")
+    else:
+        print("WTF")
 
     tp = 0
     np = 0
     for i in range(len(s1)):
-        if s1[i]==s2[i]:
-            tp = tp +1
+        if s1[i] == s2[i]:
+            tp = tp + 1
         else:
-            np = np +1
-    acc = tp/n
+            np = np + 1
+    acc = tp / n
     print(acc)
     return acc, tp, np
 
 
-
-
-
-
 ## main
 if __name__ == '__main__':
-
-    #converting.load()
-    #test, test2 = normalize()
+    # converting.load()
+    # test, test2 = normalize()
     data, test1 = imp("dane.txt")
-    final_location, centers, old = fuzzy(data, 2, 1.3)
-    a,b,c=check(test1, final_location)
-    print(a)
+    final_location, centers, old = fuzzy(data, 5, 1.3)
+    # a, b, c = check(test1, final_location)
+    # print(a)
+    print(final_location)
 
     """while(True):
        
@@ -254,4 +244,3 @@ if __name__ == '__main__':
     print("time elapsed=", time.time() - start)
     
     """
-

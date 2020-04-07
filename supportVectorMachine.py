@@ -131,7 +131,7 @@ if __name__ == '__main__':
     from sklearn.datasets import load_iris
 
     np.set_printoptions(suppress=True)
-    data =pd.read_csv('data.csv')
+    data =pd.read_csv('train.csv')
 
     x1 = data.drop('class', axis = 1)
     y1 = data['class']

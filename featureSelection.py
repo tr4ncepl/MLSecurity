@@ -24,7 +24,7 @@ def univariateSeceltion(data):
 
     featureScores = pd.concat([dfcolumns,dfscores],axis=1)
     featureScores.columns = ['Specs','Score']
-    result = featureScores.nlargest(41,'Score')
+    result = featureScores.nlargest(8,'Score')
     return result
 
 
@@ -73,7 +73,7 @@ def featureImportance(data):
     print(model.feature_importances_)
 
     feat_importances = pd.Series(model.feature_importances_, index=X.columns)
-    feat_importances.nlargest(18).plot(kind='barh')
+    feat_importances.nlargest(8).plot(kind='barh')
     plt.show()
 
 test = univariateSeceltion(data)

@@ -5,6 +5,8 @@ import re
 from sklearn.datasets import fetch_20newsgroups
 from pprint import pprint
 
+from sklearn.model_selection import train_test_split
+
 
 def preprocess_string(str_arg):
     cleaned_str = re.sub('[^a-z\s]+', ' ', str_arg, flags=re.IGNORECASE)
@@ -48,9 +50,9 @@ class NaiveBayes:
 
             # get examples preprocessed
 
-            cleaned_examples = [preprocess_string(cat_example) for cat_example in all_cat_examples]
+            #cleaned_examples = [preprocess_string(cat_example) for cat_example in all_cat_examples]
 
-            cleaned_examples = pd.DataFrame(data=cleaned_examples)
+            cleaned_examples = pd.DataFrame(data=all_cat_examples)
 
             # now costruct BoW of this particular category
             np.apply_along_axis(self.addToBow, 1, cleaned_examples, cat_index)
@@ -142,7 +144,15 @@ class NaiveBayes:
         return np.array(predictions)
 
 
+data = pd.read_csv('data.csv')
 
+x1 = data.drop('class', axis=1)
+y1 = data['class']
+
+x2 = np.array(x1)
+y2 = np.array(y1)
+
+X_train,X_test,y_train,y_test=train_test_split(x2,y2,test_size=0.2)
 
 categories=['alt.atheism', 'soc.religion.christian','comp.graphics', 'sci.med']
 newsgroups_train=fetch_20newsgroups(subset='train',categories=categories)
@@ -160,11 +170,11 @@ pd.options.display.max_colwidth=250
 pd.DataFrame(data=np.column_stack([train_data,train_labels]),columns=["Training Examples","Training Labels"]).head()
 
 
-nb = NaiveBayes(np.unique(train_labels))
+nb = NaiveBayes(np.unique(y_train))
 
 print("----------- Training in proces - ----------------")
 
-nb.train(train_data, train_labels)
+nb.train(X_train, y_train)
 
 print("--------------- Training completed ----------------------")
 
@@ -177,9 +187,9 @@ print("number of test examples ", len(test_data))
 print("number of test labels ", len(test_labels))
 
 
-pclasses = nb.test(test_data)
+pclasses = nb.test(X_test)
 
-test_acc = np.sum(pclasses==test_labels)/float(test_labels.shape[0])
+test_acc = np.sum(pclasses==y_test)/float(y_test.shape[0])
 
 print("Test set examples ", test_labels.shape[0])
 print("test set accuraty", test_acc*100,"%")

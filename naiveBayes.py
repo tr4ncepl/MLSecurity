@@ -1,44 +1,110 @@
-from collections import defaultdict
-from math import pi
-from math import e
-import requests
-import random
-import csv
-import re
-import pandas as pd
 import numpy as np
+import math
+import pandas as pd
+from sklearn import datasets
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor
 
-data = pd.read_csv("dane.txt")
 
-labels = np.array(data['class'])
+class gaussClf:
 
-data = data.drop('class', axis=1)
+    def separate_by_classes(self, X, y):
+        ''' This function separates our dataset in subdatasets by classes '''
+        self.classes = np.unique(y)
+        classes_index = {}
+        subdatasets = {}
+        cls, counts = np.unique(y, return_counts=True)
+        self.class_freq = dict(zip(cls, counts))
+        print(self.class_freq)
+        for class_type in self.classes:
+            classes_index[class_type] = np.argwhere(y==class_type)
+            subdatasets[class_type] = X[classes_index[class_type], :]
+            self.class_freq[class_type] = self.class_freq[class_type]/sum(list(self.class_freq.values()))
+        return subdatasets
 
-data_list = list(data.columns)
+    def fit(self, X, y):
+        ''' The fitting function '''
+        separated_X = self.separate_by_classes(X, y)
+        self.means = {}
+        self.std = {}
+        for class_type in self.classes:
+            # Here we calculate the mean and the standart deviation from datasets
+            self.means[class_type] = np.mean(separated_X[class_type], axis=0)[0]
+            self.std[class_type] = np.std(separated_X[class_type], axis=0)[0]
 
-data = np.array(data)
+    def calculate_probability(self, x, mean, stdev):
+        ''' This function calculates the class probability using gaussian distribution '''
+        exponent = math.exp(-((x - mean) ** 2 / (2 * stdev ** 2)))
+        return (1 / (math.sqrt(2 * math.pi) * stdev)) * exponent
 
-train_data, test_data, train_labels, test_labels = train_test_split(data, labels, test_size=0.25, random_state=42)
+    def predict_proba(self, X):
+        ''' This function predicts the probability for every class '''
+        self.class_prob = {cls: math.log1p(self.class_freq[cls]) for cls in self.classes}
+        for cls in self.classes:
+            for i in range(len(self.means)):
+                print(X[i])
+                self.class_prob[cls] += math.log1p(self.calculate_probability(X[i], self.means[cls][i], self.std[cls][i]))
+        self.class_prob = {cls: math.e ** self.class_prob[cls] for cls in self.class_prob}
+        return self.class_prob
 
-rf = RandomForestRegressor(n_estimators=1000, random_state=42)
+    def predict(self, X):
+        ''' This funtion predicts the class of a sample '''
+        pred = []
+        for x in X:
+            pred_class = None
+            max_prob = 0
+            for cls, prob in self.predict_proba(x).items():
+                if prob > max_prob:
+                    max_prob = prob
+                    pred_class = cls
+            pred.append(pred_class)
+        return pred
 
-rf.fit(train_data, train_labels)
 
-predictions = rf.predict(test_data)
+iris = datasets.load_iris()
+X = iris.data # we only take the first two features.
+y = iris.target
 
-a = 0
-b=0
-errors = abs(predictions - test_labels)
+data = pd.read_csv('data.csv')
 
-print(predictions)
+x1 = data[['atr5', 'atr6', 'atr1', 'atr23', 'atr33', 'atr32', 'atr10', 'atr24']]
+y1 = data['class']
 
-for i in range(len(predictions)):
-    if test_labels[i] == predictions[i]:
-        a = a + 1
+x2 = np.array(x1)
+y2 = np.array(y1)
+
+X_train,X_test,y_train,y_test=train_test_split(x2,y2,test_size=0.2)
+
+
+
+
+nb = gaussClf()
+nb.fit(X_train,y_train)
+final = nb.predict(X_test)
+
+def check(s1, s2):
+    n = len(s1)
+    n2 = len(s2)
+    if n == n2:
+        print("Y")
     else:
-        b=b+1
+        print("WTF")
 
-acc = a/len(predictions)
-print(acc)
+    tp = 0
+    np = 0
+    for i in range(len(s1)):
+        if s1[i] == s2[i]:
+            tp = tp + 1
+        else:
+            np = np + 1
+    acc = tp / n
+    print(acc)
+    return acc, tp, np
+
+acc = check(final,y_test )
+
+print(final)
+print(y_test)
+
+
+
+

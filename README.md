@@ -1,11 +1,14 @@
 # MLSecurity
-Usage of machine learning in security
+Usage of machine learning in security with feature selection
 
-Algorithms
+Algorithms:
 
-#NaiveBayes
+#Naive Bayes
 
-#RandomForest
+#K Nearest Neighbors
 
 #SVM
+
+
+
 

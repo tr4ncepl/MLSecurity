@@ -3,6 +3,9 @@ import math
 import pandas as pd
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
+from featureSelection import *
+from mpmath import mp
+from sklearn import preprocessing
 
 
 class gaussClf:
@@ -33,7 +36,13 @@ class gaussClf:
 
     def calculate_probability(self, x, mean, stdev):
         ''' This function calculates the class probability using gaussian distribution '''
-        exponent = math.exp(-((x - mean) ** 2 / (2 * stdev ** 2)))
+
+        if mean ==0:
+            mean = 0.01
+        if stdev == 0:
+            stdev = 0.01
+
+        exponent = mp.exp(-((x - mean) ** 2 / (2 * stdev ** 2)))
         return (1 / (math.sqrt(2 * math.pi) * stdev)) * exponent
 
     def predict_proba(self, X):
@@ -41,7 +50,7 @@ class gaussClf:
         self.class_prob = {cls: math.log1p(self.class_freq[cls]) for cls in self.classes}
         for cls in self.classes:
             for i in range(len(self.means)):
-                print(X[i])
+
                 self.class_prob[cls] += math.log1p(self.calculate_probability(X[i], self.means[cls][i], self.std[cls][i]))
         self.class_prob = {cls: math.e ** self.class_prob[cls] for cls in self.class_prob}
         return self.class_prob
@@ -59,36 +68,45 @@ class gaussClf:
             pred.append(pred_class)
         return pred
 
+def normalize(X, axis=-1, order=2):
 
-iris = datasets.load_iris()
-X = iris.data # we only take the first two features.
-y = iris.target
+    l2 = np.atleast_1d(np.linalg.norm(X, order, axis))
+    l2[l2 == 0] = 1
+    return X / np.expand_dims(l2, axis)
 
-data = pd.read_csv('data.csv')
 
-x1 = data[['atr5', 'atr6', 'atr1', 'atr23', 'atr33', 'atr32', 'atr10', 'atr24']]
-y1 = data['class']
+data = pd.read_csv('train.csv')
 
-x2 = np.array(x1)
+data, indexes = univariateSelection(data, 12)
+
+x1 = data.drop(data.columns[-1], axis=1)
+y1 = data.iloc[:, -1]
+
+scale = preprocessing.minmax_scale(x1, feature_range=(0.1, 1.1))
+
+
+x2 = np.array(scale)
 y2 = np.array(y1)
 
-X_train,X_test,y_train,y_test=train_test_split(x2,y2,test_size=0.2)
+
+test = pd.read_csv('test.csv')
+test = test[indexes]
+x_test = test.drop(test.columns[-1], axis=1)
+y_test = test.iloc[:, -1]
+x_test = np.array(x_test)
+y_test = np.array(y_test)
+x_test = normalize(x_test)
 
 
 
 
 nb = gaussClf()
-nb.fit(X_train,y_train)
-final = nb.predict(X_test)
+nb.fit(x2,y2)
+final = nb.predict(x_test)
 
 def check(s1, s2):
     n = len(s1)
     n2 = len(s2)
-    if n == n2:
-        print("Y")
-    else:
-        print("WTF")
-
     tp = 0
     np = 0
     for i in range(len(s1)):

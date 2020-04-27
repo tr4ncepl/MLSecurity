@@ -9,75 +9,104 @@ import matplotlib.pyplot as plt
 
 pd.set_option('display.float_format', lambda x: '%.3f' % x)
 np.set_printoptions(suppress=True)
-data = pd.read_csv("data.csv")
+data = pd.read_csv("train.csv")
 
 
-
-
-def univariateSeceltion(data):
-    X = data.iloc[:,0:41]
-    y = data.iloc[:,-1]
+def univariateSelection(data, n):
+    X = data.iloc[:, 0:41]
+    y = data.iloc[:, -1]
     bestfeatures = SelectKBest(score_func=chi2, k=41)
-    fit = bestfeatures.fit(X,y)
+    fit = bestfeatures.fit(X, y)
     dfscores = pd.DataFrame(fit.scores_)
     dfcolumns = pd.DataFrame(X.columns)
 
-    featureScores = pd.concat([dfcolumns,dfscores],axis=1)
-    featureScores.columns = ['Specs','Score']
-    result = featureScores.nlargest(8,'Score')
-    return result
+    featureScores = pd.concat([dfcolumns, dfscores], axis=1)
+    featureScores.columns = ['Specs', 'Score']
+    featureScores = featureScores.sort_values(["Score"], ascending=False)
+    selected = featureScores["Specs"].head(n)
+
+    indexes = []
+    for row in selected:
+        indexes.append(row)
+    indexes.append("class")
+
+    df = data[indexes]
+
+    return df, indexes
 
 
-
-
-
-def rge(data):
+def rge(data, n):
     X = data.iloc[:, 0:41]
     y = data.iloc[:, -1]
 
     model = RandomForestClassifier(random_state=100, n_estimators=50)
 
-    sel_rfe = RFE(estimator=model, n_features_to_select=10, step=1)
+    sel_rfe = RFE(estimator=model, step=1)
 
     x_train_rfe = sel_rfe.fit_transform(X, y)
 
-    print(sel_rfe.get_support())
+    # print(sel_rfe.get_support())
 
-    print(sel_rfe.ranking_)
+    dfcolumns = pd.DataFrame(X.columns)
+    dfscores = pd.DataFrame(sel_rfe.ranking_)
+    featureScores = pd.concat([dfcolumns, dfscores], axis=1)
+    featureScores.columns = ['Specs', 'Score']
+    featureScores = featureScores.sort_values(["Score"])
+
+    selected = featureScores["Specs"].head(n)
+
+    indexes = []
+    for row in selected:
+        indexes.append(row)
+    indexes.append("class")
+
+    print(indexes)
+
+    df = data[indexes]
+
+    return df, indexes
 
 
 def SFM(data):
     X = data.iloc[:, 0:41]
     y = data.iloc[:, -1]
+
     model = RandomForestClassifier(random_state=100,
                                    n_estimators=50)
 
     model.fit(X, y)
 
-    print(model.feature_importances_)
+    sel_model = SelectFromModel(estimator=model, threshold='mean')
 
-    sel_model = SelectFromModel(estimator=model, prefit=True, threshold='mean')
-
-    train_sfm = sel_model.transform(X)
-
-    print(sel_model.get_support())
+    sel_model.fit(X, y)
+    print(sel_model.transform(X))
 
 
-def featureImportance(data):
+def featureImportance(data,n):
     X = data.iloc[:, 0:41]
     y = data.iloc[:, -1]
 
     model = ExtraTreesClassifier()
     model.fit(X, y)
 
-    print(model.feature_importances_)
+    scores = model.feature_importances_
+    dfscores = pd.DataFrame(model.feature_importances_)
+    dfcolumns = pd.DataFrame(X.columns)
+    feat_importances = pd.concat([dfcolumns, dfscores], axis=1)
+    feat_importances.columns = ['Specs', 'Score']
+    feat_importances = feat_importances.sort_values(["Score"], ascending=False)
 
-    feat_importances = pd.Series(model.feature_importances_, index=X.columns)
-    feat_importances.nlargest(8).plot(kind='barh')
-    plt.show()
+    selected = feat_importances["Specs"].head(n)
 
-test = univariateSeceltion(data)
+    indexes = []
+    for row in selected:
+        indexes.append(row)
+    indexes.append("class")
 
-print(test)
 
-featureImportance(data)
+    df = data[indexes]
+
+    return df, indexes
+
+
+

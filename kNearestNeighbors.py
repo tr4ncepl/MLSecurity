@@ -2,6 +2,8 @@ from csv import reader
 from math import sqrt
 from random import randrange
 import pandas as pd
+from featureSelection import rge, univariateSelection
+import time
 
 
 def str_column_to_float(dataset, column):
@@ -20,10 +22,12 @@ def str_column_to_int(dataset, column):
         row[column] = lookup[row[column]]
     return lookup
 
+
 def load_csv(filename):
     dataset = list()
     with open(filename, 'r') as file:
-        csv_reader = reader (file)
+        next(file)
+        csv_reader = reader(file)
         for row in csv_reader:
             if not row:
                 continue
@@ -53,19 +57,20 @@ def cross_validation_split(dataaset, n_folds):
 
     fold_size = int(len(dataaset) / n_folds)
 
-    for _ in range (n_folds):
+    for _ in range(n_folds):
         fold = list()
-        while len(fold) <fold_size:
+        while len(fold) < fold_size:
             index = randrange(len(dataset_copy))
             fold.append(dataset_copy.pop(index))
         dataset_split.append(fold)
     return dataset_split
 
+
 def accuracy_metric(actual, predicted):
     correct = 0
     for i in range(len(actual)):
         if actual[i] == predicted[i]:
-            correct +=1
+            correct += 1
     return correct / float(len(actual)) * 100.0
 
 
@@ -91,8 +96,8 @@ def evaluate_algorithm(dataset, algorithm, n_folds, *args):
 
 def euclidean_distance(row1, row2):
     distance = 0.0
-    for i in range(len(row1)-1):
-        distance += (row1[i] - row2[i])**2
+    for i in range(len(row1) - 1):
+        distance += (row1[i] - row2[i]) ** 2
     return sqrt(distance)
 
 
@@ -100,20 +105,21 @@ def get_neighbors(train, test_row, num_neighbors):
     distances = list()
     for train_row in train:
         dist = euclidean_distance(test_row, train_row)
-        distances.append((train_row,dist))
+        distances.append((train_row, dist))
     distances.sort(key=lambda tup: tup[1])
     neigbors = list()
-    for i in range (num_neighbors):
+    for i in range(num_neighbors):
         neigbors.append(distances[i][0])
     return neigbors
 
-def predict_classification(train, test_row, num_neighbors):
 
+def predict_classification(train, test_row, num_neighbors):
     neighbors = get_neighbors(train, test_row, num_neighbors)
     output_values = [row[-1] for row in neighbors]
     prediction = max(set(output_values), key=output_values.count)
 
     return prediction
+
 
 def k_nearest_neighbors(train, test, num_neighbors):
     predictions = list()
@@ -123,59 +129,55 @@ def k_nearest_neighbors(train, test, num_neighbors):
     return predictions
 
 
-
-
 filename = 'train.csv'
 
 dataset = load_csv(filename)
-
+for i in range(len(dataset[0]) - 1):
+    str_column_to_float(dataset, i)
 test = pd.read_csv('test.csv')
 
-test_labels = test['class']
+column = list(test.columns)
 
-test_data = test.drop('class', axis =1)
+df = pd.DataFrame(dataset)
+df.columns = column
 
+df1, indexes = univariateSelection(df, 5)
 
+dataset = df1.values.tolist()
 
-
-
-dataset = load_csv(filename)
-for i in range(len(dataset[0])-1):
-    str_column_to_float(dataset, i)
-
+test = test[indexes]
 
 
+test_labels = test.iloc[:, -1]
+
+test_data = test.drop(test.columns[-1], axis=1)
 
 # evaluate algorithm
 
 
-n_folds = 5
-num_neighbors =6
+n_folds = 4
+num_neighbors = 6
+t0 = time.time()
 scores = evaluate_algorithm(dataset, k_nearest_neighbors, n_folds, num_neighbors)
 print('Scores: %s' % scores)
-print('Mean Accuracy: %.3f%%' % (sum(scores)/float(len(scores))))
+print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
 
-rows = [[0,1,50,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,55,1,0.13,0,0.87,1,0.02,1,0,255,1,0,0.49,0,0,0.03,0,0.2,1], [1,1,61,3,0,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,8,0,0.12,1,0.5,1,0,0.75,29,86,0.31,0.17,0.03,0.02,0,0,0.83,0.71], [0,1,20,2,26,157,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,0,0,52,26,0.5,0.08,0.02,0,0,0,0,0]]
 test_data = test_data.values.tolist()
 
 test_labels = test_labels.values.tolist()
-print(rows[1])
-print(test_data[1])
-print(len(rows[1]))
+
 print(len(test_data[1]))
-
-
 
 predictions = list()
 for i in range(len(test_data)):
-    label = predict_classification(dataset, test_data[i], num_neighbors)
+    label = int(predict_classification(dataset, test_data[i], num_neighbors))
     predictions.append(label)
 
-print(test_labels)
-print(predictions)
+
 
 acc = accuracy_metric(test_labels, predictions)
+t1 = time.time()
+total = t1-t0
+print("czas: ", total)
 
 print(acc)
-
-

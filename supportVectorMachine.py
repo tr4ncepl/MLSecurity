@@ -4,11 +4,10 @@ import pandas as pd
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils import check_random_state
 from sklearn.preprocessing import LabelEncoder
+from featureSelection import *
 
 
 def projection_simplex(v, z=1):
-
-
     n_features = v.shape[0]
     u = np.sort(v)[::-1]
     cssv = np.cumsum(u) - z
@@ -19,6 +18,11 @@ def projection_simplex(v, z=1):
     w = np.maximum(v - theta, 0)
     return w
 
+def normalize(X, axis=-1, order=2):
+
+    l2 = np.atleast_1d(np.linalg.norm(X, order, axis))
+    l2[l2 == 0] = 1
+    return X / np.expand_dims(l2, axis)
 
 class MulticlassSVM(BaseEstimator, ClassifierMixin):
 
@@ -56,7 +60,6 @@ class MulticlassSVM(BaseEstimator, ClassifierMixin):
         beta_hat = norms[i] * (Ci - self.dual_coef_[:, i]) + g / norms[i]
         z = self.C * norms[i]
 
-
         beta = projection_simplex(beta_hat, z)
 
         return Ci - self.dual_coef_[:, i] - beta / norms[i]
@@ -64,18 +67,14 @@ class MulticlassSVM(BaseEstimator, ClassifierMixin):
     def fit(self, X, y):
         n_samples, n_features = X.shape
 
-
         self._label_encoder = LabelEncoder()
         y = self._label_encoder.fit_transform(y)
-
 
         n_classes = len(self._label_encoder.classes_)
         self.dual_coef_ = np.zeros((n_classes, n_samples), dtype=np.float64)
         self.coef_ = np.zeros((n_classes, n_features))
 
-
         norms = np.sqrt(np.sum(X ** 2, axis=1))
-
 
         rs = check_random_state(self.random_state)
         ind = np.arange(n_samples)
@@ -88,7 +87,6 @@ class MulticlassSVM(BaseEstimator, ClassifierMixin):
             for ii in range(n_samples):
                 i = ind[ii]
 
-
                 if norms[i] == 0:
                     continue
 
@@ -99,9 +97,7 @@ class MulticlassSVM(BaseEstimator, ClassifierMixin):
                 if v < 1e-12:
                     continue
 
-
                 delta = self._solve_subproblem(g, y, norms, i)
-
 
                 self.coef_ += (delta * X[i][:, np.newaxis]).T
                 self.dual_coef_[:, i] += delta
@@ -128,28 +124,29 @@ class MulticlassSVM(BaseEstimator, ClassifierMixin):
 
 
 if __name__ == '__main__':
-    from sklearn.datasets import load_iris
+
 
     np.set_printoptions(suppress=True)
-    data =pd.read_csv('train.csv')
+    data = pd.read_csv('train.csv')
+    test = pd.read_csv('test.csv')
+    data,indexes = univariateSelection(data,30)
+    test=test[indexes]
+    x1 = data.drop(data.columns[-1], axis=1)
 
-    x1 = data.drop('class', axis = 1)
-    y1 = data['class']
-
+    #x1 = normalize(x1)
+    y1 = data.iloc[:, -1]
+    x_test = test.drop(test.columns[-1], axis=1)
+    y_test = test.iloc[:, -1]
+    x_test = np.array(x_test)
+    y_test = np.array(y_test)
+    #x_test = normalize(x_test)
     x2 = np.array(x1)
     y2 = np.array(y1)
 
-    print(x2.shape)
-    print(y2.shape)
 
-
-    iris = load_iris()
-    X, y = iris.data, iris.target
-
-    print(X.shape)
-    print(y.shape)
-
-
-    clf = MulticlassSVM(C=1, tol=0.00001, max_iter=10, random_state=0, verbose=1)
+    clf = MulticlassSVM(C=0.1, tol=0.00001, max_iter=100, random_state=0, verbose=2)
     clf.fit(x2, y2)
     print(clf.score(x2, y2))
+    print(clf.score(x_test, y_test))
+
+

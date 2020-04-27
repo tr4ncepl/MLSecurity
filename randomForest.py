@@ -2,12 +2,22 @@ from random import seed
 from random import randrange
 from csv import reader
 from math import sqrt
+import numpy as np
+import pandas as pd
+from featureSelection import *
 
+
+def normalize(X, axis=-1, order=2):
+
+    l2 = np.atleast_1d(np.linalg.norm(X, order, axis))
+    l2[l2 == 0] = 1
+    return X / np.expand_dims(l2, axis)
 
 # Load a CSV file
 def load_csv(filename):
     dataset = list()
     with open(filename, 'r') as file:
+        next(file)
         csv_reader = reader(file)
         for row in csv_reader:
             if not row:
@@ -206,24 +216,44 @@ def random_forest(train, test, max_depth, min_size, sample_size, n_trees, n_feat
     predictions = [bagging_predict(trees, row) for row in test]
     return (predictions)
 
+def main():
+    # Test the random forest algorithm
+    seed(2)
+    # load and prepare data
+    filename = 'train.csv'
 
-# Test the random forest algorithm
-seed(2)
-# load and prepare data
-filename = 'train.csv'
+    # convert string attributes to integers
+    dataset = load_csv(filename)
 
-# convert string attributes to integers
-dataset = load_csv(filename)
-for i in range(len(dataset[0])-1):
-    str_column_to_float(dataset, i)
-# evaluate algorithm
-n_folds = 5
-max_depth = 10
-min_size = 1
-sample_size = 1.0
-n_features = int(sqrt(len(dataset[0]) - 1))
-for n_trees in [1, 5, 10]:
-    scores = evaluate_algorithm(dataset, random_forest, n_folds, max_depth, min_size, sample_size, n_trees, n_features)
-    print('Trees: %d' % n_trees)
-    print('Scores: %s' % scores)
-    print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
+
+
+    for i in range(len(dataset[0])-1):
+        str_column_to_float(dataset, i)
+
+    test = pd.read_csv('test.csv')
+
+    column = list(test.columns)
+
+    df = pd.DataFrame(dataset)
+    df.columns = column
+
+    df1, indexes = univariateSelection(df, 5)
+
+    dataset = df1.values.tolist()
+
+    test = test[indexes]
+    # evaluate algorithm
+    n_folds = 2
+    max_depth = 3
+    min_size = 1
+    sample_size = 1.0
+    n_features = int(sqrt(len(dataset[0]) - 1))
+
+    for n_trees in [1, 5, 10]:
+        scores = evaluate_algorithm(dataset, random_forest, n_folds, max_depth, min_size, sample_size, n_trees, n_features)
+        #print('Trees: %d' % n_trees)
+       # print('Scores: %s' % scores)
+        #print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
+    return scores
+
+

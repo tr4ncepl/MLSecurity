@@ -6,6 +6,7 @@ from sklearn.feature_selection import chi2
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import ExtraTreesClassifier
 import matplotlib.pyplot as plt
+from boruta import BorutaPy
 
 pd.set_option('display.float_format', lambda x: '%.3f' % x)
 np.set_printoptions(suppress=True)
@@ -67,22 +68,31 @@ def rge(data, n):
     return df, indexes
 
 
-def SFM(data):
-    X = data.iloc[:, 0:41]
-    y = data.iloc[:, -1]
+def boruta(data, n):
+    X = data.iloc[:, 0:41].values
+    y = data.iloc[:, -1].values
+    x1 = data.iloc[:, 0:41]
+    y = y.ravel()
+    SEED = 999
+    rf_boruta = RandomForestClassifier(n_jobs=-1, class_weight='balanced', max_depth=5)
+    boruta = BorutaPy(rf_boruta, n_estimators='auto', verbose=2, max_iter=10)
+    boruta.fit(X, y)
+    dfscores = pd.DataFrame(boruta.ranking_)
+    dfcolumns = pd.DataFrame(x1.columns)
+    feat_importances = pd.concat([dfcolumns, dfscores], axis=1)
+    feat_importances.columns = ['Specs', 'Score']
+    feat_importances = feat_importances.sort_values(["Score"])
+    selected = feat_importances["Specs"].head(n)
 
-    model = RandomForestClassifier(random_state=100,
-                                   n_estimators=50)
+    indexes = []
+    for row in selected:
+        indexes.append(row)
+    indexes.append("class")
+    df = data[indexes]
 
-    model.fit(X, y)
+    return df, indexes
 
-    sel_model = SelectFromModel(estimator=model, threshold='mean')
-
-    sel_model.fit(X, y)
-    print(sel_model.transform(X))
-
-
-def featureImportance(data,n):
+def featureImportance(data, n):
     X = data.iloc[:, 0:41]
     y = data.iloc[:, -1]
 
@@ -103,10 +113,6 @@ def featureImportance(data,n):
         indexes.append(row)
     indexes.append("class")
 
-
     df = data[indexes]
 
     return df, indexes
-
-
-

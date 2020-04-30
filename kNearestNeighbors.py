@@ -2,7 +2,7 @@ from csv import reader
 from math import sqrt
 from random import randrange
 import pandas as pd
-from featureSelection import rge, univariateSelection
+from featureSelection import *
 import time
 
 
@@ -129,55 +129,59 @@ def k_nearest_neighbors(train, test, num_neighbors):
     return predictions
 
 
-filename = 'train.csv'
+def main(t, n, folds, nei):
+    filename = 'train.csv'
 
-dataset = load_csv(filename)
-for i in range(len(dataset[0]) - 1):
-    str_column_to_float(dataset, i)
-test = pd.read_csv('test.csv')
+    dataset = load_csv(filename)
+    for i in range(len(dataset[0]) - 1):
+        str_column_to_float(dataset, i)
+    test = pd.read_csv('test.csv')
 
-column = list(test.columns)
+    column = list(test.columns)
 
-df = pd.DataFrame(dataset)
-df.columns = column
+    df = pd.DataFrame(dataset)
+    df.columns = column
+    if t == 1:
+        df1, indexes = univariateSelection(df, n)
+    elif t == 2:
+        df1, indexes = rge(df, n)
+    elif t == 3:
+        df1, indexes = boruta(df, n)
+    elif t == 4:
+        df1, indexes = featureImportance(df, n)
+    elif t == 0:
+        df1 = data
+        indexes = list(df.columns)
 
-df1, indexes = univariateSelection(df, 5)
+    dataset = df1.values.tolist()
 
-dataset = df1.values.tolist()
+    test = test[indexes]
 
-test = test[indexes]
+    test_labels = test.iloc[:, -1]
 
+    test_data = test.drop(test.columns[-1], axis=1)
 
-test_labels = test.iloc[:, -1]
+    # evaluate algorithm
 
-test_data = test.drop(test.columns[-1], axis=1)
+    print("Starting training algorithm for " + str(nei) + " folds and " + str(nei) + " neighbors")
+    t0 = time.time()
+    scores = evaluate_algorithm(dataset, k_nearest_neighbors, folds, nei)
+    print("Finished training ")
+    print('Scores: %s' % scores)
+    print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
 
-# evaluate algorithm
+    test_data = test_data.values.tolist()
 
+    test_labels = test_labels.values.tolist()
 
-n_folds = 4
-num_neighbors = 6
-t0 = time.time()
-scores = evaluate_algorithm(dataset, k_nearest_neighbors, n_folds, num_neighbors)
-print('Scores: %s' % scores)
-print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
+    print("Predictions started ")
+    predictions = list()
+    for i in range(len(test_data)):
+        label = int(predict_classification(dataset, test_data[i], nei))
+        predictions.append(label)
 
-test_data = test_data.values.tolist()
-
-test_labels = test_labels.values.tolist()
-
-print(len(test_data[1]))
-
-predictions = list()
-for i in range(len(test_data)):
-    label = int(predict_classification(dataset, test_data[i], num_neighbors))
-    predictions.append(label)
-
-
-
-acc = accuracy_metric(test_labels, predictions)
-t1 = time.time()
-total = t1-t0
-print("czas: ", total)
-
-print(acc)
+    acc = accuracy_metric(test_labels, predictions)
+    t1 = time.time()
+    total = t1 - t0
+    print("Prediction finished. Total time : ", total)
+    print("Accuraty of prediction : " , acc)

@@ -146,10 +146,21 @@ class MultilayerPerceptron():
         return y_pred
 
 
-def main():
-    train = pd.read_csv('train.csv')
+def main(t, n, num, it, rate ):
 
-    dane, indexes = featureImportance(train, 41)
+    train = pd.read_csv('train.csv')
+    if t==1:
+        dane, indexes = univariateSelection(train, n)
+    elif t==2:
+        dane, indexes = rge(train, n)
+    elif t==3:
+        dane, indexes = boruta(train, n)
+    elif t==4:
+        dane, indexes = featureImportance(train, n)
+    elif t== 0:
+        dane = train
+        indexes = list(train.columns)
+
 
     test = pd.read_csv('test.csv')
     test = test[indexes]
@@ -169,11 +180,13 @@ def main():
 
     train_data = normalize(train_data)
     train_data = train_data.to_numpy()
+    print("Starting of training and building model with ", num," neurons in HL, ",it," iterations and ", rate," learning rate")
     t0 = time.time()
-    clf = MultilayerPerceptron(n_hidden=20,
-                               n_iterations=2000,
-                               learning_rate=0.0001)
+    clf = MultilayerPerceptron(n_hidden=num,
+                               n_iterations=it,
+                               learning_rate=rate)
 
+    print("Fitting data into a model")
     clf.fit(train_data, train_labels)
     y_pred = np.argmax(clf.predict(test_data), axis=1)
     y_test = np.argmax(test_labels, axis=1)
@@ -182,8 +195,7 @@ def main():
     t1 = time.time()
     total = t1-t0
     print("Accuracy:", accuracy)
-    print("czas: ", total)
+    print("Total time : ", total)
 
 
-if __name__ == "__main__":
-    main()
+

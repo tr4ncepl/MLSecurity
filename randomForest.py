@@ -1,3 +1,4 @@
+import time
 from random import seed
 from random import randrange
 from csv import reader
@@ -8,10 +9,10 @@ from featureSelection import *
 
 
 def normalize(X, axis=-1, order=2):
-
     l2 = np.atleast_1d(np.linalg.norm(X, order, axis))
     l2[l2 == 0] = 1
     return X / np.expand_dims(l2, axis)
+
 
 # Load a CSV file
 def load_csv(filename):
@@ -216,44 +217,57 @@ def random_forest(train, test, max_depth, min_size, sample_size, n_trees, n_feat
     predictions = [bagging_predict(trees, row) for row in test]
     return (predictions)
 
-def main():
+
+def main(t, n, trees, folds, deph, size):
     # Test the random forest algorithm
     seed(2)
     # load and prepare data
     filename = 'train.csv'
-
+    file2 = 'test.csv'
     # convert string attributes to integers
     dataset = load_csv(filename)
 
-
-
-    for i in range(len(dataset[0])-1):
+    for i in range(len(dataset[0]) - 1):
         str_column_to_float(dataset, i)
 
     test = pd.read_csv('test.csv')
+
+    test_data = load_csv(file2)
+
+    for i in range(len(test_data[0]) - 1):
+        str_column_to_float(test_data, i)
 
     column = list(test.columns)
 
     df = pd.DataFrame(dataset)
     df.columns = column
 
-    df1, indexes = boruta(df, 5)
+
+    if t == 1:
+        df1, indexes = univariateSelection(df, n)
+    elif t == 2:
+        df1, indexes = rge(df, n)
+    elif t == 3:
+        df1, indexes = boruta(df, n)
+    elif t == 4:
+        df1, indexes = featureImportance(df, n)
+    elif t == 0:
+        df1 = df
+        indexes = list(df.columns)
 
     dataset = df1.values.tolist()
 
     test = test[indexes]
     # evaluate algorithm
-    n_folds = 2
-    max_depth = 3
-    min_size = 1
+    n_folds = folds
+    max_depth = deph
+    min_size = size
     sample_size = 1.0
     n_features = int(sqrt(len(dataset[0]) - 1))
-
-    for n_trees in [1, 5, 10]:
-        scores = evaluate_algorithm(dataset, random_forest, n_folds, max_depth, min_size, sample_size, n_trees, n_features)
-        print('Trees: %d' % n_trees)
-        print('Scores: %s' % scores)
-        print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
-
-
-main()
+    t0 = time.time()
+    print("Starting algorithm with parameters:  ",trees," trees", ", max depth of tree ", deph,", min size ", min_size )
+    scores = evaluate_algorithm(dataset, random_forest, n_folds, max_depth, min_size, sample_size, trees, n_features)
+    t1 = time.time()
+    print("Total time : ",t1-t0)
+    print('Scores: %s' % scores)
+    print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))

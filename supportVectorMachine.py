@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import pandas as pd
 
@@ -18,11 +20,12 @@ def projection_simplex(v, z=1):
     w = np.maximum(v - theta, 0)
     return w
 
-def normalize(X, axis=-1, order=2):
 
+def normalize(X, axis=-1, order=2):
     l2 = np.atleast_1d(np.linalg.norm(X, order, axis))
     l2[l2 == 0] = 1
     return X / np.expand_dims(l2, axis)
+
 
 class MulticlassSVM(BaseEstimator, ClassifierMixin):
 
@@ -123,30 +126,43 @@ class MulticlassSVM(BaseEstimator, ClassifierMixin):
         return self._label_encoder.inverse_transform(pred)
 
 
-if __name__ == '__main__':
-
-
+def main(t, n,c1, iter, tol, ver):
     np.set_printoptions(suppress=True)
     data = pd.read_csv('train.csv')
     test = pd.read_csv('test.csv')
-    data,indexes = univariateSelection(data,30)
-    test=test[indexes]
-    x1 = data.drop(data.columns[-1], axis=1)
 
-    #x1 = normalize(x1)
-    y1 = data.iloc[:, -1]
+    if t == 1:
+        dane, indexes = univariateSelection(data, n)
+    elif t == 2:
+        dane, indexes = rge(data, n)
+    elif t == 3:
+        dane, indexes = boruta(data, n)
+    elif t == 4:
+        dane, indexes = featureImportance(data, n)
+    elif t == 0:
+        dane = data
+        indexes = list(data.columns)
+
+    test = test[indexes]
+    x1 = dane.drop(data.columns[-1], axis=1)
+
+    # x1 = normalize(x1)
+    y1 = dane.iloc[:, -1]
     x_test = test.drop(test.columns[-1], axis=1)
     y_test = test.iloc[:, -1]
     x_test = np.array(x_test)
     y_test = np.array(y_test)
-    #x_test = normalize(x_test)
+    # x_test = normalize(x_test)
     x2 = np.array(x1)
     y2 = np.array(y1)
-
-
-    clf = MulticlassSVM(C=0.1, tol=0.00001, max_iter=100, random_state=0, verbose=2)
+    t0 = time.time()
+    print("Starting training algorithm for C = ",c1, " iterations = ", iter)
+    clf = MulticlassSVM(C=c1, tol=tol, max_iter=iter, random_state=0, verbose=ver)
     clf.fit(x2, y2)
-    print(clf.score(x2, y2))
-    print(clf.score(x_test, y_test))
-
-
+    print("Accuracy of train classification", clf.score(x2, y2))
+    print("Training ended ")
+    print("Starting fitting model and predicting classes ")
+    t1 = time.time()
+    print("Test data accuracy : ", clf.score(x_test, y_test))
+    total = t1-t0
+    print("Total time : ", total)

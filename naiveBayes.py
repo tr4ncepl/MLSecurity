@@ -74,36 +74,6 @@ def normalize(X, axis=-1, order=2):
     l2[l2 == 0] = 1
     return X / np.expand_dims(l2, axis)
 
-
-data = pd.read_csv('train.csv')
-
-data, indexes = univariateSelection(data, 12)
-
-x1 = data.drop(data.columns[-1], axis=1)
-y1 = data.iloc[:, -1]
-
-scale = preprocessing.minmax_scale(x1, feature_range=(0.1, 1.1))
-
-
-x2 = np.array(scale)
-y2 = np.array(y1)
-
-
-test = pd.read_csv('test.csv')
-test = test[indexes]
-x_test = test.drop(test.columns[-1], axis=1)
-y_test = test.iloc[:, -1]
-x_test = np.array(x_test)
-y_test = np.array(y_test)
-x_test = normalize(x_test)
-
-
-
-
-nb = gaussClf()
-nb.fit(x2,y2)
-final = nb.predict(x_test)
-
 def check(s1, s2):
     n = len(s1)
     n2 = len(s2)
@@ -118,10 +88,43 @@ def check(s1, s2):
     print(acc)
     return acc, tp, np
 
-acc = check(final,y_test )
 
-print(final)
-print(y_test)
+
+def main():
+    data = pd.read_csv('train.csv')
+
+    data, indexes = univariateSelection(data, 12)
+
+    x1 = data.drop(data.columns[-1], axis=1)
+    y1 = data.iloc[:, -1]
+
+    scale = preprocessing.minmax_scale(x1, feature_range=(0.1, 1.1))
+
+
+    x2 = np.array(scale)
+    y2 = np.array(y1)
+
+
+    test = pd.read_csv('test.csv')
+    test = test[indexes]
+    x_test = test.drop(test.columns[-1], axis=1)
+    y_test = test.iloc[:, -1]
+    x_test = np.array(x_test)
+    y_test = np.array(y_test)
+    x_test = normalize(x_test)
+
+
+
+
+    nb = gaussClf()
+    nb.fit(x2,y2)
+    final = nb.predict(x_test)
+    acc = check(final, y_test)
+
+    print(final)
+    print(y_test)
+
+
 
 
 

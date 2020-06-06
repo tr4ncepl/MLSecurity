@@ -35,16 +35,7 @@ def shuffle_data(X, y, seed=None):
     return X[idx], y[idx]
 
 
-def train_test_split(X, y, test_size=0.5, shuffle=True, seed=None):
-    if shuffle:
-        X, y = shuffle_data(X, y, seed)
-    # Split the training data from test data in the ratio specified in
-    # test_size
-    split_i = len(y) - int(len(y) // (1 / test_size))
-    X_train, X_test = X[:split_i], X[split_i:]
-    y_train, y_test = y[:split_i], y[split_i:]
 
-    return X_train, X_test, y_train, y_test
 
 
 class Loss(object):
@@ -63,11 +54,8 @@ class CrossEntropy(Loss):
 
     def loss(self, y, p):
         # Avoid division by zero
-        p = np.clip(p, 1e-15, 1 - 1e-15)
+        #p = np.clip(p, 1e-15, 1 - 1e-15)
         return - y * np.log(p) - (1 - y) * np.log(1 - p)
-
-    def acc(self, y, p):
-        return accuracy_score(np.argmax(y, axis=1), np.argmax(p, axis=1))
 
     def gradient(self, y, p):
         # Avoid division by zero
@@ -106,10 +94,12 @@ class MultilayerPerceptron():
     def _initialize_weights(self, X, y):
         n_samples, n_features = X.shape
         _, n_outputs = y.shape
+        print(n_outputs)
         # Hidden layer
         limit = 1 / math.sqrt(n_features)
         self.W = np.random.uniform(-limit, limit, (n_features, self.n_hidden))
         self.w0 = np.zeros((1, self.n_hidden))
+
         # Output layer
         limit = 1 / math.sqrt(self.n_hidden)
         self.V = np.random.uniform(-limit, limit, (self.n_hidden, n_outputs))
@@ -146,7 +136,7 @@ class MultilayerPerceptron():
         return y_pred
 
 
-def main(t, n, num, it, rate ):
+def start(t, n, num, it, rate ):
 
     train = pd.read_csv('train.csv')
     if t==1:
@@ -174,9 +164,11 @@ def main(t, n, num, it, rate ):
     test_data = test_data.to_numpy()
 
     train_labels = dane.iloc[:, -1]
+
     train_data = dane.drop(dane.columns[-1], axis=1)
 
     train_labels = to_categorical(train_labels)
+
 
     train_data = normalize(train_data)
     train_data = train_data.to_numpy()
@@ -190,12 +182,15 @@ def main(t, n, num, it, rate ):
     clf.fit(train_data, train_labels)
     y_pred = np.argmax(clf.predict(test_data), axis=1)
     y_test = np.argmax(test_labels, axis=1)
-
+    print(y_pred)
     accuracy = accuracy_score(y_test, y_pred)
     t1 = time.time()
     total = t1-t0
     print("Accuracy:", accuracy)
     print("Total time : ", total)
+
+    final = "Accuracy: " + str(accuracy) + "\n" + "Total time: " + str(total)
+    return final
 
 
 

@@ -93,7 +93,7 @@ def check(s1, s2):
 def main():
     data = pd.read_csv('train.csv')
 
-    data, indexes = univariateSelection(data, 12)
+    data, indexes = univariateSelection(data, 41)
 
     x1 = data.drop(data.columns[-1], axis=1)
     y1 = data.iloc[:, -1]
@@ -121,8 +121,7 @@ def main():
     final = nb.predict(x_test)
     acc = check(final, y_test)
 
-    print(final)
-    print(y_test)
+    print(acc)
 
 
 

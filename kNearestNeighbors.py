@@ -129,7 +129,7 @@ def k_nearest_neighbors(train, test, num_neighbors):
     return predictions
 
 
-def main(t, n, folds, nei):
+def start(t, n, folds, nei):
     filename = 'train.csv'
 
     dataset = load_csv(filename)
@@ -161,8 +161,6 @@ def main(t, n, folds, nei):
 
     test_data = test.drop(test.columns[-1], axis=1)
 
-    # evaluate algorithm
-
     print("Starting training algorithm for " + str(nei) + " folds and " + str(nei) + " neighbors")
     t0 = time.time()
     scores = evaluate_algorithm(dataset, k_nearest_neighbors, folds, nei)
@@ -185,3 +183,5 @@ def main(t, n, folds, nei):
     total = t1 - t0
     print("Prediction finished. Total time : ", total)
     print("Accuraty of prediction : " , acc)
+    final = "Accuracy: " + str(acc) + "\n" + "Total time: " + str(total)
+    return final

@@ -7,14 +7,16 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils import check_random_state
 from sklearn.preprocessing import LabelEncoder
 from featureSelection import *
+from test import *
 
 
 def projection_simplex(v, z=1):
     n_features = v.shape[0]
     u = np.sort(v)[::-1]
-    cssv = np.cumsum(u) - z
+    cssv = np.cumsum(u)-z
     ind = np.arange(n_features) + 1
     cond = u - cssv / ind > 0
+
     rho = ind[cond][-1]
     theta = cssv[cond][-1] / float(rho)
     w = np.maximum(v - theta, 0)
@@ -40,7 +42,9 @@ class MulticlassSVM(BaseEstimator, ClassifierMixin):
     def _partial_gradient(self, X, y, i):
 
         g = np.dot(X[i], self.coef_.T) + 1
+
         g[y[i]] -= 1
+
         return g
 
     def _violation(self, g, y, i):
@@ -60,8 +64,10 @@ class MulticlassSVM(BaseEstimator, ClassifierMixin):
 
         Ci = np.zeros(g.shape[0])
         Ci[y[i]] = self.C
+
         beta_hat = norms[i] * (Ci - self.dual_coef_[:, i]) + g / norms[i]
         z = self.C * norms[i]
+
 
         beta = projection_simplex(beta_hat, z)
 
@@ -69,11 +75,10 @@ class MulticlassSVM(BaseEstimator, ClassifierMixin):
 
     def fit(self, X, y):
         n_samples, n_features = X.shape
-
         self._label_encoder = LabelEncoder()
         y = self._label_encoder.fit_transform(y)
-
         n_classes = len(self._label_encoder.classes_)
+
         self.dual_coef_ = np.zeros((n_classes, n_samples), dtype=np.float64)
         self.coef_ = np.zeros((n_classes, n_features))
 
@@ -121,12 +126,13 @@ class MulticlassSVM(BaseEstimator, ClassifierMixin):
         return self
 
     def predict(self, X):
+        print(self.coef_.T)
         decision = np.dot(X, self.coef_.T)
         pred = decision.argmax(axis=1)
         return self._label_encoder.inverse_transform(pred)
 
 
-def main(t, n,c1, iter, tol, ver):
+def start(t, n,c1, iter, tol, ver):
     np.set_printoptions(suppress=True)
     data = pd.read_csv('train.csv')
     test = pd.read_csv('test.csv')
@@ -146,6 +152,7 @@ def main(t, n,c1, iter, tol, ver):
     test = test[indexes]
     x1 = dane.drop(data.columns[-1], axis=1)
 
+
     # x1 = normalize(x1)
     y1 = dane.iloc[:, -1]
     x_test = test.drop(test.columns[-1], axis=1)
@@ -163,6 +170,13 @@ def main(t, n,c1, iter, tol, ver):
     print("Training ended ")
     print("Starting fitting model and predicting classes ")
     t1 = time.time()
-    print("Test data accuracy : ", clf.score(x_test, y_test))
+    acc = clf.score(x_test, y_test)
+    print("Test data accuracy : ", acc)
     total = t1-t0
     print("Total time : ", total)
+    final = "Accuracy: " + str(acc) + "\n" + "Total time: " +str(total)
+    return final
+
+
+
+

@@ -93,7 +93,6 @@ elif choose == 4:
     folds = inputNumber("Number of folds :   ")
     deph = inputNumber("Max deph of tree :   ")
     min_size = inputNumber("Min size :    ")
-
     randomForest.main(t, n, trees, folds, deph, min_size)
 
 elif choose == 5:

@@ -7,7 +7,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils import check_random_state
 from sklearn.preprocessing import LabelEncoder
 from featureSelection import *
-from test import *
+from sklearn.metrics import *
 
 
 def projection_simplex(v, z=1):
@@ -125,11 +125,17 @@ class MulticlassSVM(BaseEstimator, ClassifierMixin):
 
         return self
 
+
+    def aha(self,dane):
+        return dane
+
     def predict(self, X):
-        print(self.coef_.T)
         decision = np.dot(X, self.coef_.T)
         pred = decision.argmax(axis=1)
+        self.predictions = self._label_encoder.inverse_transform(pred)
         return self._label_encoder.inverse_transform(pred)
+
+
 
 
 def start(t, n,c1, iter, tol, ver):
@@ -153,29 +159,52 @@ def start(t, n,c1, iter, tol, ver):
     x1 = dane.drop(data.columns[-1], axis=1)
 
 
-    # x1 = normalize(x1)
+    x1 = normalize(x1)
     y1 = dane.iloc[:, -1]
     x_test = test.drop(test.columns[-1], axis=1)
     y_test = test.iloc[:, -1]
     x_test = np.array(x_test)
     y_test = np.array(y_test)
-    # x_test = normalize(x_test)
+    x_test = normalize(x_test)
     x2 = np.array(x1)
     y2 = np.array(y1)
     t0 = time.time()
-    print("Starting training algorithm for C = ",c1, " iterations = ", iter)
+    about ="Starting training algorithm for C = "+str(c1)+ " iterations = "+ str(iter) + "and tolerance = " +str(tol)
     clf = MulticlassSVM(C=c1, tol=tol, max_iter=iter, random_state=0, verbose=ver)
     clf.fit(x2, y2)
+    t2 =time.time()
     print("Accuracy of train classification", clf.score(x2, y2))
     print("Training ended ")
     print("Starting fitting model and predicting classes ")
-    t1 = time.time()
+
+    training = t2-t0
     acc = clf.score(x_test, y_test)
+    predictions = clf.predictions
+    t1 = time.time()
+
+
     print("Test data accuracy : ", acc)
     total = t1-t0
+    accu = accuracy_score(y_test, predictions)
+    prec = precision_score(y_test, predictions, average='weighted')
+    rec = recall_score(y_test, predictions, average='weighted')
+    f1 = f1_score(y_test, predictions, average='weighted')
+    print("Accuracy: ", accu)
+    print("Precision: ", prec)
+    print("Recall", rec)
+    print("F1 Score:", f1)
     print("Total time : ", total)
-    final = "Accuracy: " + str(acc) + "\n" + "Total time: " +str(total)
+    print(predictions)
+
+    final =about + "\nTraining ended in: " + str(training)+ "seconds \nStarting predictinon of test data"+ "\n####End of prediction####\nAccuracy:   " + str(accu) + "\nPrecision:   " + str(prec) + "\nRecall:   " + str(
+        rec) + "\nF1 Score:  " + str(f1) + "\n" + "Total time:   " + str(total)
     return final
+
+
+
+
+
+
 
 
 

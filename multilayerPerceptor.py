@@ -6,6 +6,7 @@ import pandas as pd
 from featureSelection import *
 from sklearn import datasets
 import time
+from sklearn.metrics import *
 
 
 def to_categorical(x, n_col=None):
@@ -94,11 +95,11 @@ class MultilayerPerceptron():
     def _initialize_weights(self, X, y):
         n_samples, n_features = X.shape
         _, n_outputs = y.shape
-        print(n_outputs)
         # Hidden layer
         limit = 1 / math.sqrt(n_features)
         self.W = np.random.uniform(-limit, limit, (n_features, self.n_hidden))
         self.w0 = np.zeros((1, self.n_hidden))
+
 
         # Output layer
         limit = 1 / math.sqrt(self.n_hidden)
@@ -118,6 +119,7 @@ class MultilayerPerceptron():
             grad_wrt_out_l_input = self.loss.gradient(y, y_pred) * self.output_activation.gradient(output_layer_input)
             grad_v = hidden_output.T.dot(grad_wrt_out_l_input)
             grad_v0 = np.sum(grad_wrt_out_l_input, axis=0, keepdims=True)
+
 
             grad_wrt_hidden_l_input = grad_wrt_out_l_input.dot(self.V.T) * self.hidden_activation.gradient(hidden_input)
             grad_w = X.T.dot(grad_wrt_hidden_l_input)
@@ -180,17 +182,35 @@ def start(t, n, num, it, rate ):
 
     print("Fitting data into a model")
     clf.fit(train_data, train_labels)
-    y_pred = np.argmax(clf.predict(test_data), axis=1)
+    predictions = np.argmax(clf.predict(test_data), axis=1)
     y_test = np.argmax(test_labels, axis=1)
-    print(y_pred)
-    accuracy = accuracy_score(y_test, y_pred)
     t1 = time.time()
     total = t1-t0
-    print("Accuracy:", accuracy)
+    accu = accuracy_score(y_test, predictions)
+    prec = precision_score(y_test, predictions, average='macro')
+    rec = recall_score(y_test, predictions, average='macro')
+    f1 = f1_score(y_test, predictions, average='macro')
+    print("Accuracy: ", accu)
+    print("Precision: ", prec)
+    print("Recall", rec)
+    print("F1 Score:", f1)
     print("Total time : ", total)
 
-    final = "Accuracy: " + str(accuracy) + "\n" + "Total time: " + str(total)
+    final = "Accuracy:   " + str(accu) + "\nPrecision:   "+ str(prec)+"\nRecall:   " +str(rec)+ "\nF1 Score:  "+ str(f1)+ "\n" + "Total time:   " + str(total)
     return final
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

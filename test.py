@@ -1,3 +1,5 @@
+import pandas as pd
+import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 import kNearestNeighbors as knn
 import supportVectorMachine as svm
@@ -6,6 +8,35 @@ import multilayerPerceptor as mp
 import rf as rf
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+module_dir = os.path.dirname(__file__)
+file_path = os.path.join(module_dir, 'history.csv')
+history = pd.read_csv(file_path, sep=';', error_bad_lines = False)
+
+
+class PandasModel(QtCore.QAbstractTableModel):
+    def __init__(self, data, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        self._data = data
+
+    def rowCount(self, parent=None):
+        return len(self._data.values)
+
+    def columnCount(self, parent=None):
+        return self._data.columns.size
+
+    def data(self, index, role=QtCore.Qt.DisplayRole):
+        if index.isValid():
+            if role == QtCore.Qt.DisplayRole:
+                return str(self._data.values[index.row()][index.column()])
+        return None
+
+    def headerData(self, col, orientation, role):
+        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+            return self._data.columns[col]
+        return None
+
+
+
 
 
 class Ui_KNNParams(object):
@@ -105,17 +136,17 @@ class Ui_SVMParams(object):
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 600)
+        MainWindow.resize(1024, 799)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.startAlg = QtWidgets.QPushButton(self.centralwidget)
-        self.startAlg.setGeometry(QtCore.QRect(330, 240, 151, 41))
+        self.startAlg.setGeometry(QtCore.QRect(360, 485, 151, 41))
         self.startAlg.setObjectName("startAlg")
         self.algOutput = QtWidgets.QTextEdit(self.centralwidget)
-        self.algOutput.setGeometry(QtCore.QRect(330, 310, 441, 221))
+        self.algOutput.setGeometry(QtCore.QRect(530, 385, 461, 281))
         self.algOutput.setObjectName("algOutput")
         self.algList = QtWidgets.QListWidget(self.centralwidget)
-        self.algList.setGeometry(QtCore.QRect(20, 10, 251, 91))
+        self.algList.setGeometry(QtCore.QRect(10, 250, 251, 91))
         self.algList.setObjectName("algList")
         item = QtWidgets.QListWidgetItem()
         self.algList.addItem(item)
@@ -128,7 +159,7 @@ class Ui_MainWindow(object):
         item = QtWidgets.QListWidgetItem()
         self.algList.addItem(item)
         self.featList = QtWidgets.QListWidget(self.centralwidget)
-        self.featList.setGeometry(QtCore.QRect(20, 120, 251, 91))
+        self.featList.setGeometry(QtCore.QRect(10, 40, 251, 91))
         self.featList.setObjectName("featList")
         item = QtWidgets.QListWidgetItem()
         self.featList.addItem(item)
@@ -141,17 +172,56 @@ class Ui_MainWindow(object):
         item = QtWidgets.QListWidgetItem()
         self.featList.addItem(item)
         self.paramsButt = QtWidgets.QPushButton(self.centralwidget)
-        self.paramsButt.setGeometry(QtCore.QRect(180, 270, 91, 41))
+        self.paramsButt.setGeometry(QtCore.QRect(190, 350, 91, 41))
         self.paramsButt.setObjectName("paramsButt")
         self.algSumm = QtWidgets.QPlainTextEdit(self.centralwidget)
-        self.algSumm.setGeometry(QtCore.QRect(20, 320, 251, 221))
+        self.algSumm.setGeometry(QtCore.QRect(20, 410, 281, 291))
         self.algSumm.setObjectName("algSumm")
         self.nFeat = QtWidgets.QLineEdit(self.centralwidget)
-        self.nFeat.setGeometry(QtCore.QRect(30, 280, 113, 20))
+        self.nFeat.setGeometry(QtCore.QRect(30, 170, 113, 20))
         self.nFeat.setObjectName("nFeat")
+        self.tableView = QtWidgets.QTableView(self.centralwidget)
+        self.tableView.setGeometry(QtCore.QRect(300, 30, 691, 261))
+        self.tableView.setObjectName("tableView")
+        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.label.setGeometry(QtCore.QRect(40, 380, 191, 16))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label.setFont(font)
+        self.label.setObjectName("label")
+        self.label_2 = QtWidgets.QLabel(self.centralwidget)
+        self.label_2.setGeometry(QtCore.QRect(30, 140, 111, 16))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_2.setFont(font)
+        self.label_2.setObjectName("label_2")
+        self.label_3 = QtWidgets.QLabel(self.centralwidget)
+        self.label_3.setGeometry(QtCore.QRect(30, 10, 241, 16))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_3.setFont(font)
+        self.label_3.setObjectName("label_3")
+        self.label_4 = QtWidgets.QLabel(self.centralwidget)
+        self.label_4.setGeometry(QtCore.QRect(10, 220, 221, 16))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_4.setFont(font)
+        self.label_4.setObjectName("label_4")
+        self.label_5 = QtWidgets.QLabel(self.centralwidget)
+        self.label_5.setGeometry(QtCore.QRect(550, 10, 411, 16))
+        font = QtGui.QFont()
+        font.setPointSize(14)
+        self.label_5.setFont(font)
+        self.label_5.setObjectName("label_5")
+        self.label_6 = QtWidgets.QLabel(self.centralwidget)
+        self.label_6.setGeometry(QtCore.QRect(560, 340, 161, 31))
+        font = QtGui.QFont()
+        font.setPointSize(14)
+        self.label_6.setFont(font)
+        self.label_6.setObjectName("label_6")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1024, 21))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -165,12 +235,11 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.startAlg.setText(_translate("MainWindow", "Start"))
-        self.algOutput.setHtml(_translate("MainWindow",
-                                          "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-                                          "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-                                          "p, li { white-space: pre-wrap; }\n"
-                                          "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-                                          "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>"))
+        self.algOutput.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>"))
         __sortingEnabled = self.algList.isSortingEnabled()
         self.algList.setSortingEnabled(False)
         item = self.algList.item(0)
@@ -198,6 +267,21 @@ class Ui_MainWindow(object):
         item.setText(_translate("MainWindow", "None"))
         self.featList.setSortingEnabled(__sortingEnabled)
         self.paramsButt.setText(_translate("MainWindow", "Parameters"))
+        self.label.setText(_translate("MainWindow", "Algorithm Settings"))
+        self.label_2.setText(_translate("MainWindow", "Number of features"))
+        self.label_3.setText(_translate("MainWindow", "Choose Feature Selection algorithm"))
+        self.label_4.setText(_translate("MainWindow", "Choose classification algorithm"))
+        self.label_5.setText(_translate("MainWindow", "Latest Classifications"))
+        self.label_6.setText(_translate("MainWindow", "Algorithm results"))
+
+
+
+
+
+
+
+
+
 
 
 class Ui_NBParameters(object):
@@ -357,7 +441,7 @@ class Ui_RFParams(object):
         self.label_2.setText(_translate("RFParams", "Max deph of tree = "))
         self.label.setText(_translate("RFParams", "Number of trees = "))
         self.pushButton.setText(_translate("RFParams", "Submit"))
-        self.label_3.setText(_translate("RFParams", "Min gain = "))
+        self.label_3.setText(_translate("RFParams", "Min_Split = "))
 
 
 class SVMParams(QtWidgets.QMainWindow, Ui_SVMParams):
@@ -394,10 +478,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setupUi(self)
-
+        model = PandasModel(history)
+        self.tableView.setModel(model)
         self.paramsButt.clicked.connect(self.pressedParam)
         self.startAlg.clicked.connect(self.classify)
-
+        self.algList.clicked.connect(self.pressedParam)
 
     def pressedParam(self):
         type = self.algList.currentItem().text()
@@ -439,7 +524,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         feat_name = self.featList.currentItem().text()
         self.window.hide()
         if (self.feat_type == 0):
-            self.nf = 0
+            self.nf = 41
         params = "Selected algorithm: Support Vector Machine\n" + "Feature Selection: " + feat_name + "\nwith selected features: " + str(
             self.nf) + \
                  "\n\nAlgorithm parameters:\n" + "C = " + str(self.c) + "\nIterations = " + str(
@@ -456,7 +541,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         feat_name = self.featList.currentItem().text()
         self.window.hide()
         if (self.feat_type == 0):
-            self.nf = 0
+            self.nf = 41
         params = "Selected algorithm: K Nearest Neighbors\n" + "Feature Selection: " + feat_name + "\nwith selected features: " + str(
             self.nf) + \
                  "\n\nAlgorithm parameters:\n" + "Folds = " + str(self.c) + "\nNeighbors = " + str(self.n)
@@ -464,7 +549,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.algSumm.insertPlainText(params)
 
     def passNB(self):
-        self.alg =3
+        self.alg = 3
         self.nf = self.nFeat.text()
         self.feat_type = self.featList.currentRow()
         feat_name = self.featList.currentItem().text()
@@ -514,27 +599,26 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.algSumm.insertPlainText(params)
 
     def classify(self):
-        if(self.alg==1):
-            final = svm.start(int(self.feat_type),int(self.nf),int(self.c),int(self.n,),float(self.tol),2)
+        if (self.alg == 1):
+            final = svm.start(int(self.feat_type), int(self.nf), int(self.c), int(self.n, ), float(self.tol), 2)
             self.algOutput.clear()
             self.algOutput.insertPlainText(final)
-        elif(self.alg==2):
-            final = knn.start(int(self.feat_type),int(self.nf),int(self.c),int(self.n))
+        elif (self.alg == 2):
+            final = knn.start(int(self.feat_type), int(self.nf), int(self.c), int(self.n))
             self.algOutput.clear()
             self.algOutput.insertPlainText(final)
-        elif(self.alg==3):
-            final = nb.start(int(self.feat_type),int(self.nf))
+        elif (self.alg == 3):
+            final = nb.start(int(self.feat_type), int(self.nf))
             self.algOutput.clear()
             self.algOutput.insertPlainText(final)
-        elif(self.alg==4):
-            final = mp.start(int(self.feat_type),int(self.nf),int(self.neurons),int(self.iter),float(self.error))
+        elif (self.alg == 4):
+            final = mp.start(int(self.feat_type), int(self.nf), int(self.neurons), int(self.iter), float(self.error))
             self.algOutput.clear()
             self.algOutput.insertPlainText(final)
-        elif(self.alg==5):
-            final = rf.start(int(self.feat_type),int(self.nf),int(self.trs),int(self.dph))
+        elif (self.alg == 5):
+            final = rf.start(int(self.feat_type), int(self.nf), int(self.trs), str(self.dph),int(self.gain) )
             self.algOutput.clear()
             self.algOutput.insertPlainText(final)
-
 
 
 if __name__ == "__main__":

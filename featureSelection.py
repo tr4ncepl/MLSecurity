@@ -35,8 +35,7 @@ def univariateSelection(data, n):
     indexes.append("class")
 
     df = data[indexes]
-    print(total)
-    print(selected)
+    print("Selected features ",df)
     return df, indexes
 
 
@@ -46,7 +45,7 @@ def univariateSelection(data, n):
 def rge(data, n):
     X = data.iloc[:, 0:41]
     y = data.iloc[:, -1]
-
+    print("RFE")
     t0 = time.time()
     model = RandomForestClassifier(random_state=100, n_estimators=50, max_depth=6, )
     sel_rfe = RFECV(estimator=model, step=5)
@@ -57,6 +56,7 @@ def rge(data, n):
     total = t1 - t0
 
     dfcolumns = pd.DataFrame(X.columns)
+    print(sel_rfe.ranking_)
     dfscores = pd.DataFrame(sel_rfe.ranking_)
     featureScores = pd.concat([dfcolumns, dfscores], axis=1)
     featureScores.columns = ['Specs', 'Score']
@@ -86,24 +86,28 @@ def boruta(data, n):
     x1 = data.iloc[:, 0:41]
     y = y.ravel()
     t0 = time.time()
-    rf_boruta = RandomForestClassifier(n_jobs=-1, class_weight='balanced', max_depth=6)
-    boruta = BorutaPy(rf_boruta, n_estimators='auto', verbose=2, max_iter=35)
-    boruta.fit(X, y)
-    dfscores = pd.DataFrame(boruta.ranking_)
-    dfcolumns = pd.DataFrame(x1.columns)
-    feat_importances = pd.concat([dfcolumns, dfscores], axis=1)
-    feat_importances.columns = ['Specs', 'Score']
-    feat_importances = feat_importances.sort_values(["Score"])
-    selected = feat_importances["Specs"].head(n)
+    #rf_boruta = RandomForestClassifier(n_jobs=-1, class_weight='balanced', max_depth=6)
+    #boruta = BorutaPy(rf_boruta, n_estimators='auto', verbose=2, max_iter=35)
+    #boruta.fit(X, y)
+    ranking = ["atr1",'atr23',"atr24","atr25","atr26","atr27","atr28","atr29","atr30","atr31","atr32","atr33","atr34","atr35","atr36","atr37","atr38","atr39","atr22","atr40","atr41","atr10","atr17","atr16","atr2","atr14","atr13","atr12","atr3","atr4","atr5","atr6","atr11"]
+    #print(ranking)
+    #dfscores = pd.DataFrame(ranking)
+    #dfcolumns = pd.DataFrame(x1.columns)
+    #feat_importances = pd.concat([dfcolumns, dfscores], axis=1)
+    #feat_importances.columns = ['Specs', 'Score']
+    #feat_importances = feat_importances.sort_values(["Score"])
+    selected = ranking[:n]
     t1 = time.time()
     total = t1 - t0
     print("czas", total)
-    print(feat_importances)
+    #print(feat_importances)
     indexes = []
     for row in selected:
         indexes.append(row)
     indexes.append("class")
     df = data[indexes]
+    #print(indexes)
+    #print(df)
 
     return df, indexes
 
@@ -121,7 +125,7 @@ def featureImportance(data, n):
     feat_importances = pd.concat([dfcolumns, dfscores], axis=1)
     feat_importances.columns = ['Specs', 'Score']
     feat_importances = feat_importances.sort_values(["Score"], ascending=False)
-    print(feat_importances)
+
     selected = feat_importances["Specs"].head(n)
     print(total)
     indexes = []
@@ -130,5 +134,7 @@ def featureImportance(data, n):
     indexes.append("class")
 
     df = data[indexes]
+    print(indexes)
+    print(df)
 
     return df, indexes

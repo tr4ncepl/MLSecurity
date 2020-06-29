@@ -8,8 +8,12 @@ from matplotlib import cm
 from matplotlib.cm import get_cmap
 import matplotlib.cm as cmx
 import matplotlib.colors as colors
+from sklearn.model_selection import GridSearchCV
+
 from featureSelection import *
 import time
+from sklearn.metrics import *
+from sklearn.ensemble import RandomForestClassifier
 
 
 
@@ -154,7 +158,6 @@ class DecisionTree(object):
                 branch = tree.true_branch
         elif feature_value == tree.threshold:
             branch = tree.true_branch
-        print(self.predict_value(x, branch))
         return self.predict_value(x, branch)
 
     def predict(self, X):
@@ -200,7 +203,7 @@ class ClassificationTree(DecisionTree):
         super(ClassificationTree, self).fit(X, y)
 
 
-class RandomForest():
+class RandomForestClasifier():
 
     def __init__(self, n_estimators=100, max_features=None, min_samples_split=2,
                  min_gain=0, max_depth=float("inf")):
@@ -250,9 +253,13 @@ def accuracy_score(y_true, y_pred):
     accuracy = np.sum(y_true == y_pred, axis=0) / len(y_true)
     return accuracy
 
-def start(t, n,trees, depth):
+def start(t, n,trees, depth,split):
     train = pd.read_csv('train.csv')
-
+    if depth=="inf":
+        dep=None
+        print("Y")
+    else:
+        dep = int(depth)
     if t==1:
         dane, indexes = univariateSelection(train, n)
     elif t==2:
@@ -264,6 +271,7 @@ def start(t, n,trees, depth):
     elif t== 0:
         dane = train
         indexes = list(train.columns)
+
     test = pd.read_csv('test.csv')
     test = test[indexes]
     test_labels = test.iloc[:, -1]
@@ -272,19 +280,25 @@ def start(t, n,trees, depth):
 
 
     train_data = dane.drop(dane.columns[-1], axis=1)
-    train_data = train_data.to_numpy()
-    test_data = test_data.to_numpy()
+
     t0 = time.time()
-    clf = RandomForest(n_estimators=trees,max_depth=depth)
-    clf.fit(train_data, train_labels)
-    y_pred = clf.predict(test_data)
+    clf = RandomForestClassifier(criterion="entropy", max_features="sqrt", n_estimators=trees,max_depth=dep,min_samples_leaf=1,min_samples_split=split)
+    clf.fit(train_data,train_labels)
+    predictions = clf.predict(test_data)
+    t1=time.time()
+    total = t1 - t0
+    accu = accuracy_score(test_labels, predictions)
+    prec = precision_score(test_labels, predictions, average='macro')
+    rec = recall_score(test_labels, predictions, average='macro')
+    f1 = f1_score(test_labels, predictions, average='macro')
+    print("Accuracy: ", accu)
+    print("Precision: ", prec)
+    print("Recall", rec)
+    print("F1 Score:", f1)
+    print("Total time : ", total)
 
-    accuracy = accuracy_score(test_labels, y_pred)
-    t1= time.time()
-    total = t0-t1
-    print ("Accuracy:", accuracy)
-    final = "Accuracy: " + str(accuracy) + "\n" + "Total time: " + str(total)
+    final = "Accuracy:   " + str(accu) + "\nPrecision:   " + str(prec) + "\nRecall:   " + str(
+        rec) + "\nF1 Score:  " + str(f1) + "\n" + "Total time:   " + str(total)
     return final
-
 
 

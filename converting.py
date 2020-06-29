@@ -125,7 +125,7 @@ def load():
 
     data['atr4'].replace(flags, inplace=True)
 
-    export_csv = data.to_csv("dane.txt", sep=",", index=False, header=False)
+
 
     data = data[np.isfinite(data).all(1)]
 
@@ -141,3 +141,19 @@ def load():
     else:
         print("NNN")
 
+def knn():
+    train = pd.read_csv("train.csv")
+    df = train.loc[train['class']==2]
+    for i in range(1, 7):
+        test = pd.DataFrame
+        test = train.loc[train['class']==i]
+        if(i!= 2):
+            test = test.sample(frac=0.4)
+        df = df.append(test)
+        df = df.sample(frac=1).reset_index(drop = True)
+    print(df)
+    df.to_csv('knn_train.csv',index = False)
+
+
+
+knn()

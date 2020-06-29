@@ -4,6 +4,8 @@ from random import randrange
 import pandas as pd
 from featureSelection import *
 import time
+from sklearn.metrics import *
+from sklearn.neighbors import KNeighborsClassifier
 
 
 def str_column_to_float(dataset, column):
@@ -130,12 +132,15 @@ def k_nearest_neighbors(train, test, num_neighbors):
 
 
 def start(t, n, folds, nei):
-    filename = 'train.csv'
+
+
+    filename = 'knn_train.csv'
 
     dataset = load_csv(filename)
+
     for i in range(len(dataset[0]) - 1):
         str_column_to_float(dataset, i)
-    test = pd.read_csv('test.csv')
+    test = pd.read_csv('knn_test.csv')
 
     column = list(test.columns)
 
@@ -161,12 +166,12 @@ def start(t, n, folds, nei):
 
     test_data = test.drop(test.columns[-1], axis=1)
 
-    print("Starting training algorithm for " + str(nei) + " folds and " + str(nei) + " neighbors")
+    #print("Starting training algorithm for " + str(folds) + " folds and " + str(nei) + " neighbors")
     t0 = time.time()
-    scores = evaluate_algorithm(dataset, k_nearest_neighbors, folds, nei)
-    print("Finished training ")
-    print('Scores: %s' % scores)
-    print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
+    #scores = evaluate_algorithm(dataset, k_nearest_neighbors, folds, nei)
+    #print("Finished training ")
+    #print('Scores: %s' % scores)
+    #print('Mean Accuracy: %.3f%%' % (sum(scores) / float(len(scores))))
 
     test_data = test_data.values.tolist()
 
@@ -182,6 +187,68 @@ def start(t, n, folds, nei):
     t1 = time.time()
     total = t1 - t0
     print("Prediction finished. Total time : ", total)
-    print("Accuraty of prediction : " , acc)
+    accu = accuracy_score(test_labels,predictions)
+    prec = precision_score(test_labels,predictions,average='micro')
+    rec = recall_score(test_labels,predictions,average='micro')
+    f1 = f1_score(test_labels,predictions,average='micro')
+    print("Accuracy: ",accu)
+    print("Precision: ", prec)
+    print("Recall", rec)
+    print("F1 Score:", f1)
+
     final = "Accuracy: " + str(acc) + "\n" + "Total time: " + str(total)
     return final
+
+def knn(t, n, nei):
+    train = pd.read_csv('train.csv')
+    test = pd.read_csv('test.csv')
+
+    if t==1:
+        dane, indexes = univariateSelection(train, n)
+    elif t==2:
+        dane, indexes = rge(train, n)
+    elif t==3:
+        dane, indexes = boruta(train, n)
+    elif t==4:
+        dane, indexes = featureImportance(train, n)
+    elif t== 0:
+        dane = train
+        indexes = list(train.columns)
+    test = test[indexes]
+
+
+    test_labels = test.iloc[:, -1]
+    test_data = test.drop(test.columns[-1], axis=1)
+    train_labels = dane.iloc[:, -1]
+
+    train_data = dane.drop(dane.columns[-1], axis=1)
+    t0 = time.time()
+    print("Classification for ", nei)
+    clf = KNeighborsClassifier(n_neighbors=nei)
+    clf.fit(train_data,train_labels)
+    predictions = clf.predict(test_data)
+    t1 = time.time()
+    total = t1-t0
+
+    accu = accuracy_score(test_labels, predictions)
+    prec = precision_score(test_labels, predictions, average='macro')
+    rec = recall_score(test_labels, predictions, average='macro')
+    f1 = f1_score(test_labels, predictions, average='macro')
+    print("Accuracy: ", accu)
+    print("Precision: ", prec)
+    print("Recall", rec)
+    print("F1 Score:", f1)
+    print("Total time : ", total)
+
+    final = "Accuracy:   " + str(accu) + "\nPrecision:   " + str(prec) + "\nRecall:   " + str(
+        rec) + "\nF1 Score:  " + str(f1) + "\n" + "Total time:   " + str(total)
+    return final
+
+
+
+
+
+
+
+
+

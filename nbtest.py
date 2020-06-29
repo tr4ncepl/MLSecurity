@@ -9,6 +9,7 @@ import pandas as pd
 
 from featureSelection import univariateSelection, featureImportance
 from multilayerPerceptor import shuffle_data, to_categorical, rge, boruta
+from sklearn.metrics import *
 
 
 def accuracy_score(y_true, y_pred):
@@ -69,7 +70,6 @@ class NaiveBayes():
         for i, c in enumerate(self.classes):
             # Initialize posterior as prior
             posterior = self._calculate_prior(c)
-            print(posterior)
             # Naive assumption (independence):
             # P(x1,x2,x3|Y) = P(x1|Y)*P(x2|Y)*P(x3|Y)
             # Posterior is product of prior and likelihoods (ignoring scaling factor)
@@ -128,16 +128,24 @@ def start(t, n):
 
     print("Fitting data into a model")
     clf.fit(train_data, train_labels)
-    y_pred = clf.predict(test_data)
+    predictions = clf.predict(test_data)
     #y_test = np.argmax(test_labels, axis=1)
 
-    accuracy = accuracy_score(test_labels, y_pred)
+
     t1 = time.time()
     total = t1-t0
-    print("Accuracy:", accuracy)
+    accu = accuracy_score(test_labels, predictions)
+    prec = precision_score(test_labels, predictions, average='macro')
+    rec = recall_score(test_labels, predictions, average='macro')
+    f1 = f1_score(test_labels, predictions, average='macro')
+    print("Accuracy: ", accu)
+    print("Precision: ", prec)
+    print("Recall", rec)
+    print("F1 Score:", f1)
     print("Total time : ", total)
 
-
-    final = "Accuracy: " + str(accuracy) + "\n" + "Total time: " + str(total)
+    final = "Accuracy:   " + str(accu) + "\nPrecision:   " + str(prec) + "\nRecall:   " + str(
+        rec) + "\nF1 Score:  " + str(f1) + "\n" + "Total time:   " + str(total)
     return final
+
 
